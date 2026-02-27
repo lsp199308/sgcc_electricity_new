@@ -116,17 +116,44 @@ class DataFetcher:
         return True
 
     # @staticmethod 
-    def _sliding_track(self, driver, distance):# 机器模拟人工滑动轨迹
-        # 获取按钮
-        slider = driver.find_element(By.CLASS_NAME, "slide-verify-slider-mask-item")
-        ActionChains(driver).click_and_hold(slider).perform()
-        # 获取轨迹
-        # tracks = _get_tracks(distance)
-        # for t in tracks:
-        yoffset_random = random.uniform(-2, 4)
-        ActionChains(driver).move_by_offset(xoffset=distance, yoffset=yoffset_random).perform()
-            # time.sleep(0.2)
-        ActionChains(driver).release().perform()
+
+	def _sliding_track(self, driver, distance):  # 机器模拟人工滑动轨迹
+    	slider = driver.find_element(By.CLASS_NAME, "slide-verify-slider-mask-item")
+    	ActionChains(driver).click_and_hold(slider).perform()
+
+    	moved = 0
+    	steps = 25  # 分段次数
+
+    	for i in range(steps):
+        	remain = distance - moved
+        	if remain <= 0:
+            	break
+
+        	# 前快后慢
+        	if i < steps * 0.6:
+            	move = random.uniform(3, 6)
+        	else:
+            	move = random.uniform(1, 3)
+
+        	move = min(move, remain)
+        	moved += move
+
+        	ActionChains(driver).move_by_offset(
+            	xoffset=move,
+            	yoffset=random.uniform(-1, 1)
+        	).perform()
+
+        	time.sleep(random.uniform(0.01, 0.03))
+
+    	# 轻微回拉（很关键）
+    	ActionChains(driver).move_by_offset(
+        	xoffset=random.uniform(-2, -1),
+        	yoffset=0
+    	).perform()
+
+    	time.sleep(random.uniform(0.02, 0.05))
+
+    	ActionChains(driver).release().perform()
 
     def connect_user_db(self, user_id):
         """创建数据库集合，db_name = electricity_daily_usage_{user_id}
